@@ -324,14 +324,12 @@ const EscalaApp = {
                 const iso = this.getBrasiliaISO(pointer);
                 const team = this.getTeam(iso);
 
-                // SÓ GERA SE: 
-                // 1. Data pertence à equipe que está carregando o lote (window.activeTeam)
-                // 2. Não existe nada salvo (ou se quiser resetar)
-                if (team === window.activeTeam && !EscalaStorage.schedules[team][iso]) {
+                // Gera para AMBAS as equipes (KIRRA e MUNDAKA)
+                if (!EscalaStorage.schedules[team][iso]) {
                     const sch = this.computeScheduleForDate(iso, numG, numV);
                     await EscalaStorage.saveSchedule(iso, sch);
                     countNew++;
-                } else if (team === window.activeTeam) {
+                } else {
                     countExisting++;
                 }
                 pointer.setUTCDate(pointer.getUTCDate() + 1);
