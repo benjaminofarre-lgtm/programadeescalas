@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surfland Escalas - Sistema Modular v13.7</title>
-    
+
     <!-- Estilos -->
     <link rel="stylesheet" href="css/styles-escala.css">
 </head>
+
 <body>
 
     <div id="loadingOverlay">
@@ -18,7 +20,9 @@
     <header>
         <h1 id="appTitle">GUARDA-VIDAS MONSTRAO DA SURFLAND</h1>
         <div style="display:flex; gap:10px; align-items:center;">
-            <button class="btn" id="undoBtn" onclick="UndoService.undo()" style="background:#f39c12; padding: 5px 15px; display:none; outline:none; border: 1px solid white;">↩ Desfazer</button>
+            <button class="btn" id="undoBtn" onclick="UndoService.undo()"
+                style="background:#f39c12; padding: 5px 15px; display:none; outline:none; border: 1px solid white;">↩
+                Desfazer</button>
             <button class="login-btn" id="authBtn" onclick="window.toggleAuth()">🔒 Login Supervisor</button>
         </div>
     </header>
@@ -27,6 +31,7 @@
         <div class="nav-tabs">
             <div class="nav-item active" onclick="window.switchTab('tabCalendar', event)">📅 Calendário</div>
             <div class="nav-item" onclick="window.switchTab('tabStats', event)">📊 Ranking Justiça</div>
+            <div class="nav-item" onclick="window.switchTab('tabFreelancers', event)">⭐ Freelancers</div>
             <div class="nav-item" onclick="window.switchTab('tabTeam', event)">👥 Equipe</div>
         </div>
 
@@ -35,16 +40,19 @@
             <div id="periodManagement" style="margin-top: 20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h2 id="periodTitle" style="margin:0;">📅 Minhas Escalas Salvas</h2>
-                    <button id="btnNewPeriod" class="btn btn-success" onclick="window.showNewPeriodForm()" style="font-size:1.1em; padding: 10px 20px; display:none;">➕ Criar Nova Escala</button>
+                    <button id="btnNewPeriod" class="btn btn-success" onclick="window.showNewPeriodForm()"
+                        style="font-size:1.1em; padding: 10px 20px; display:none;">➕ Criar Nova Escala</button>
                 </div>
-                
+
                 <!-- Lista de Períodos -->
-                <div id="periodsList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
+                <div id="periodsList"
+                    style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
                     <!-- Injetado via JS -->
                 </div>
 
                 <!-- Formulário Novo Período -->
-                <div id="newPeriodForm" style="display:none; background:#f8f9fa; padding:20px; border-radius:8px; margin-bottom:20px; border:1px solid #ddd;">
+                <div id="newPeriodForm"
+                    style="display:none; background:#f8f9fa; padding:20px; border-radius:8px; margin-bottom:20px; border:1px solid #ddd;">
                     <h3 style="margin-top:0;">Configurar Novo Período de Escala</h3>
                     <div class="config-box" style="justify-content: flex-start; margin-bottom: 20px;">
                         <div class="config-item">
@@ -69,8 +77,34 @@
                         </div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-primary" onclick="window.createPeriod()">🚀 Confirmar e Gerar Escalas</button>
-                        <button class="btn btn-outline" onclick="document.getElementById('newPeriodForm').style.display='none'">Cancelar</button>
+                        <button class="btn btn-primary" onclick="window.createPeriod()">🚀 Confirmar e Gerar
+                            Escalas</button>
+                        <button class="btn btn-outline"
+                            onclick="document.getElementById('newPeriodForm').style.display='none'">Cancelar</button>
+                    </div>
+                </div>
+
+                <!-- Seleção de Equipe (Intermediário) -->
+                <div id="teamSelectionView" style="display:none; text-align:center; padding: 40px 20px;">
+                    <h2 style="color:var(--primary); margin-bottom:30px;">Escolha a Unidade de Operação</h2>
+                    <div style="display:flex; justify-content:center; gap:30px; flex-wrap:wrap;">
+                        <div class="team-card-select" onclick="window.selectTeam('KIRRA')">
+                            <div class="team-logo bg-kirra">K</div>
+                            <h3>Equipe KIRRA</h3>
+                            <p>Gerenciar escalas e rotatividade da unidade Kirra.</p>
+                            <span class="btn btn-primary" style="width:100%; box-sizing:border-box;">ENTRAR →</span>
+                        </div>
+                        <div class="team-card-select" onclick="window.selectTeam('MUNDAKA')">
+                            <div class="team-logo bg-mundaka">M</div>
+                            <h3>Equipe MUNDAKA</h3>
+                            <p>Gerenciar escalas e rotatividade da unidade Mundaka.</p>
+                            <span class="btn btn-primary"
+                                style="width:100%; box-sizing:border-box; background:var(--accent);">ENTRAR →</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:40px;">
+                        <button class="btn btn-outline" onclick="window.backToDashboard()">← Voltar para Lista de
+                            Escalas</button>
                     </div>
                 </div>
 
@@ -78,9 +112,21 @@
                 <div id="activePeriodView" style="display:none; border-top: 2px solid #3498db; padding-top:20px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                         <h3 id="activePeriodLabel" style="color:var(--accent); margin:0;"></h3>
-                        <div style="display:flex; gap:10px;">
-                            <button id="btnRegenerateActive" class="btn btn-purple" onclick="window.regenerateActivePeriod()" style="display:none; font-size:0.9em;">🚀 Gerar Todas as Escalas</button>
-                            <button class="btn btn-outline" onclick="window.backToDashboard()">← Voltar para Lista</button>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div id="regenContainer"
+                                style="display:none; gap:10px; align-items:center; background:#f8f9fa; padding:5px 15px; border-radius:5px; border:1px solid #ddd;">
+                                <label style="font-size:0.9em; font-weight:bold; color:#555;">Guias:</label>
+                                <input type="number" id="regenConfigGuias" value="8"
+                                    style="width:50px; padding:3px; border:1px solid #ccc; border-radius:3px; text-align:center;">
+                                <label style="font-size:0.9em; font-weight:bold; color:#555;">GVs:</label>
+                                <input type="number" id="regenConfigGVs" value="12"
+                                    style="width:50px; padding:3px; border:1px solid #ccc; border-radius:3px; text-align:center;">
+                                <button id="btnRegenerateActive" class="btn btn-purple"
+                                    onclick="window.regenerateActivePeriod()" style="font-size:0.9em; margin:0;">🚀
+                                    Gerar Todas as Escalas</button>
+                            </div>
+                            <button class="btn btn-outline" onclick="window.backToDashboard()">← Voltar para
+                                Lista</button>
                         </div>
                     </div>
                     <div id="scheduleTimeline" class="calendar-grid">
@@ -95,14 +141,20 @@
                     <h3 id="editorTitle" style="margin:0;">Detalhes do Dia</h3>
                     <button class="btn btn-outline" onclick="window.closeDayEditor()">Fechar X</button>
                 </div>
-                <div id="pastWarning" style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; display:none;"></div>
+                <div id="pastWarning"
+                    style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; display:none;">
+                </div>
 
-                <div id="editorActions" style="display:flex; gap:10px; margin-bottom:15px; align-items: center; flex-wrap: wrap;">
+                <div id="editorActions"
+                    style="display:flex; gap:10px; margin-bottom:15px; align-items: center; flex-wrap: wrap;">
                     <span id="editorTeamBadge" class="team-badge" style="font-size:1.1em; padding:8px 15px;"></span>
-                    <button id="btnMother" class="btn btn-purple" onclick="window.generateFromMother()">👑 Salvar como Mãe e Gerar Próximas</button>
+                    <button id="btnMother" class="btn btn-purple" onclick="window.generateFromMother()">👑 Salvar como
+                        Mãe e Gerar Próximas</button>
                     <button id="btnSave" class="btn btn-primary" onclick="window.saveDay()">💾 Apenas Salvar</button>
-                    <button id="btnGenerate" class="btn btn-outline" onclick="window.generateSingleDayUI()">🔄 Gerar Escala Diária</button>
-                    <button class="btn btn-success" style="background:#27ae60;" onclick="window.copyToClipboard()">📋 Copiar Escala</button>
+                    <button id="btnGenerate" class="btn btn-outline" onclick="window.generateSingleDayUI()">🔄 Gerar
+                        Escala Diária</button>
+                    <button class="btn btn-success" style="background:#27ae60;" onclick="window.copyToClipboard()">📋
+                        Copiar Escala</button>
                 </div>
 
                 <div class="columns">
@@ -118,8 +170,11 @@
 
                 <div class="columns" style="margin-top:20px;">
                     <div class="col-panel">
-                        <h4 style="color:#e67e22;">📋 FALTAS (Um por linha)</h4>
-                        <textarea id="editorFaltas" style="width:100%; height:100px; padding:10px; border-radius:5px; border:1px solid #ddd;" placeholder="Ex:\nNicolas Grimm\nRafael Borges"></textarea>
+                        <h4 style="color:#e67e22;">📋 FALTAS (Automático)</h4>
+                        <div id="editorFaltasDisplay"
+                            style="width:100%; min-height:100px; padding:10px; border-radius:5px; border:1px solid #ddd; background:#fff; font-size:0.9em; color:#555;">
+                            <!-- Injetado via JS -->
+                        </div>
                     </div>
                     <div class="col-panel" id="freelancerStatsPanel">
                         <h4 style="color:#9b59b6;">⭐ FREELANCERS NO LOTE</h4>
@@ -134,22 +189,39 @@
         <!-- ABA ESTATÍSTICAS -->
         <div id="tabStats" class="tab-content">
             <h3>Ranking de Rotatividade (Justiça)</h3>
-            <span style="font-size:0.85em; color:#666;">Dados contados a partir de: <strong id="rankingStartDateLabel"></strong></span><br>
+            <span style="font-size:0.85em; color:#666;">Dados contados a partir de: <strong
+                    id="rankingStartDateLabel"></strong></span><br>
             <div style="display:flex; gap:10px; margin-bottom:15px; margin-top: 10px; flex-wrap:wrap;">
                 <button class="btn btn-outline" onclick="window.renderStats('KIRRA')">Ver KIRRA</button>
                 <button class="btn btn-outline" onclick="window.renderStats('MUNDAKA')">Ver MUNDAKA</button>
             </div>
             <table class="stats-table">
                 <thead>
-                    <tr><th>Prioridade</th><th>Nome</th><th>Total</th><th>Vezes Guia</th><th>% Guia</th></tr>
+                    <tr>
+                        <th>Prioridade</th>
+                        <th>Nome</th>
+                        <th>Total</th>
+                        <th>Vezes Guia</th>
+                        <th>% Guia</th>
+                    </tr>
                 </thead>
                 <tbody id="statsTableBody"></tbody>
             </table>
         </div>
 
+        <!-- ABA FREELANCERS -->
+        <div id="tabFreelancers" class="tab-content">
+            <h3>Resumo de Freelancers no Período</h3>
+            <div id="freelancerTabContent">
+                <!-- Injetado via JS -->
+                <p style="color:#666;">Selecione um período no calendário para ver o resumo de freelancers.</p>
+            </div>
+        </div>
+
         <div id="tabTeam" class="tab-content">
             <h3>Gestão de Equipe</h3>
-            <div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; border: 1px solid #ddd;">
+            <div
+                style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; border: 1px solid #ddd;">
                 <input id="addName" placeholder="Nome Completo" style="padding:8px; flex:2;">
                 <select id="addTeam" style="padding:8px; flex:1;">
                     <option value="KIRRA">KIRRA</option>
@@ -162,14 +234,19 @@
                 </select>
                 <button class="btn btn-success" onclick="window.addStaff()">+ Adicionar</button>
             </div>
-            <div id="teamList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:10px;"></div>
+            <div id="teamList"
+                style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:10px;">
+            </div>
 
             <h3 style="margin-top:30px;">Gestão de Freelancers</h3>
-            <div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px; display:flex; gap:10px; border: 1px solid #ddd;">
+            <div
+                style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px; display:flex; gap:10px; border: 1px solid #ddd;">
                 <input id="addFreelaName" placeholder="Nome do Freelancer" style="padding:8px; flex:2;">
                 <button class="btn btn-purple" onclick="window.addFreelancer()">+ Adicionar Freelancer</button>
             </div>
-            <div id="freelancerList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:10px;"></div>
+            <div id="freelancerList"
+                style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:10px;">
+            </div>
         </div>
     </div>
 
@@ -181,9 +258,55 @@
             <input type="password" id="loginPass" placeholder="Senha">
             <br>
             <button class="btn btn-primary" onclick="window.attemptLogin()">Entrar</button>
-            <button class="btn btn-outline" onclick="document.getElementById('loginModal').style.display='none'">Cancelar</button>
+            <button class="btn btn-outline"
+                onclick="document.getElementById('loginModal').style.display='none'">Cancelar</button>
         </div>
     </div>
+
+    <!-- MODAL GERAR VIA MÃE -->
+    <div id="motherScaleModal" class="modal-overlay">
+        <div class="login-box" style="width: 450px; max-width: 90%;">
+            <h3>🚀 Criar Lote via Escala Mãe</h3>
+            <p style="font-size: 0.85em; color: #666; margin-bottom: 20px;">
+                Esta escala que você editou servirá de modelo ("Mãe") para todas as próximas escalas geradas automaticamente neste novo lote.
+            </p>
+
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-weight: bold; font-size: 0.9em;">Nome do Lote:</label><br>
+                <input type="text" id="motherScaleName" placeholder="Ex: Lote Especial Março"
+                    style="width:100%; box-sizing:border-box; padding:8px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex: 1; text-align: left;">
+                    <label style="font-weight: bold; font-size: 0.9em;">Início:</label><br>
+                    <input type="date" id="motherStartDate" style="width:100%; box-sizing:border-box; padding:8px;">
+                </div>
+                <div style="flex: 1; text-align: left;">
+                    <label style="font-weight: bold; font-size: 0.9em;">Fim:</label><br>
+                    <input type="date" id="motherEndDate" style="width:100%; box-sizing:border-box; padding:8px;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="flex: 1; text-align: left;">
+                    <label style="font-weight: bold; font-size: 0.9em;">Qtd GDs (Próximas):</label><br>
+                    <input type="number" id="motherNumGDs" style="width:100%; box-sizing:border-box; padding:8px;">
+                </div>
+                <div style="flex: 1; text-align: left;">
+                    <label style="font-weight: bold; font-size: 0.9em;">Qtd GVs (Próximas):</label><br>
+                    <input type="number" id="motherNumGVs" style="width:100%; box-sizing:border-box; padding:8px;">
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction: column; gap:10px;">
+                <button class="btn btn-purple" onclick="window.confirmGenerateMother()">🌟 Confirmar e Gerar
+                    Lote</button>
+                <button class="btn btn-outline" onclick="window.hideMotherScaleModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Scripts -->
     <script src="js/escala-config.js"></script>
@@ -191,9 +314,10 @@
     <script src="js/services/escala-export.js"></script>
     <script src="js/services/undo-service.js"></script>
     <script src="js/ui/calendar-renderer.js"></script>
-    
+
     <!-- App Entry (Module) -->
     <script type="module" src="js/escala-app.js"></script>
 
 </body>
+
 </html>

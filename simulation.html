@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <h1>Fairness Simulation</h1>
+    <pre id="output"></pre>
+    <script>
+        const output = document.getElementById('output');
+        const log = (...args) => {
+            console.log(...args);
+            output.textContent += args.join(' ') + '\n';
+        };
+
+        const JusticeService = {
+            calculateJustice(teamName, startDate, endDate, history = []) {
+                const stats = {};
+                const staffIds = history.length > 0 ? [...new Set(history.flatMap(h => [...h.guides, ...h.gvs]))] : Array.from({ length: 20 }, (_, i) => `staff_${i}`);
+
+                staffIds.forEach(id => {
+                    stats[id] = { id, name: id, total: 0, guides: 0, ratio: 0, lastRole: null, shiftsSinceGuide: 999 };
+                });
+
+                history.forEach(day => {
+                    day.guides.forEach(id => {
+                        if (stats[id]) {
+                            stats[id].guides++;
+                            stats[id].total++;
+                            stats[id].lastRole = 'guia';
+                            stats[id].shiftsSinceGuide = 0;
+                        }
+                    });
+                    day.gvs.forEach(id => {
+                        if (stats[id]) {
+                            stats[id].total++;
+                            stats[id].lastRole = 'gv';
+                            stats[id].shiftsSinceGuide++;
+                        }
+                    });
+                });
+
+                Object.keys(stats).forEach(id => {
+                    const s = stats[id];
+                    s.ratio = s.total === 0 ? 0 : (s.guides / s.total);
+                });
+                return stats;
+            },
+            calculateHistoricalWeight(teamName, refDateStartIso) {
+                return {};
+            }
+        };
+
+        function computeScheduleForDate(teamMembers, justiceStats, historicalWeights, numGuias = 8, numGVs = 12) {
+            const rotativos = teamMembers.filter(s => s.role === 'ROTATIVO');
+
+            rotativos.sort((a, b) => {
+                const statA = justiceStats[a.id] || { total: 0, guides: 0, ratio: 0, lastRole: null, shiftsSinceGuide: 999 };
+                const statB = justiceStats[b.id] || { total: 0, guides: 0, ratio: 0, lastRole: null, shiftsSinceGuide: 999 };
+
+                const hwA = historicalWeights[a.id] || { total: 0, gvs: 0 };
+                const hwB = historicalWeights[b.id] || { total: 0, gvs: 0 };
+
+                const aWasG = statA.lastRole === 'guia' ? 1 : 0;
+                const bWasG = statB.lastRole === 'guia' ? 1 : 0;
+                if (aWasG !== bWasG) return aWasG - bWasG;
+
+                const ratioCurrentA = (statA.guides + 1) / (statA.total + 2);
+                const ratioCurrentB = (statB.guides + 1) / (statB.total + 2);
+
+                if (Math.abs(ratioCurrentA - ratioCurrentB) > 0.01) {
+                    return ratioCurrentA - ratioCurrentB;
+                }
+
+                const ratioHistA = (hwA.total - hwA.gvs + 1) / (hwA.total + 2);
+                const ratioHistB = (hwB.total - hwB.gvs + 1) / (hwB.total + 2);
+
+                if (Math.abs(ratioHistA - ratioHistB) > 0.01) {
+                    return ratioHistA - ratioHistB;
+                }
+
+                if (statA.shiftsSinceGuide !== statB.shiftsSinceGuide) {
+                    return statB.shiftsSinceGuide - statA.shiftsSinceGuide;
+                }
+
+                return Math.random() - 0.5;
+            });
+
+            const finalGuides = [];
+            const rotativosCopy = [...rotativos];
+            while (finalGuides.length < numGuias && rotativosCopy.length > 0) {
+                finalGuides.push(rotativosCopy.shift().id);
+            }
+            const finalGVs = [];
+            while (finalGVs.length < numGVs && rotativosCopy.length > 0) {
+                finalGVs.push(rotativosCopy.shift().id);
+            }
+
+            return { guides: finalGuides, gvs: finalGVs };
+        }
+
+        const staff = Array.from({ length: 20 }, (_, i) => ({ id: `staff_${i}`, role: 'ROTATIVO' }));
+        const history = [];
+
+        for (let day = 0; day < 30; day++) {
+            const stats = JusticeService.calculateJustice('KIRRA', null, null, history);
+            const sch = computeScheduleForDate(staff, stats, {}, 8, 12);
+            history.push(sch);
+        }
+
+        const finalStats = JusticeService.calculateJustice('KIRRA', null, null, history);
+        log("FINAL DISTRIBUTION (30 days, 20 people, 8 guide slots/day):");
+        const guidesCount = Object.values(finalStats).map(s => s.guides);
+        log("Guided days per person:", guidesCount.join(', '));
+
+        const min = Math.min(...guidesCount);
+        const max = Math.max(...guidesCount);
+        log(`Min: ${min}, Max: ${max}, Diff: ${max - min}`);
+
+        if (max - min <= 1) {
+            log("PASSED: Distribution is very fair!");
+        } else {
+            log("FAILED: Distribution variance is too high.");
+        }
+    </script>
+</body>
+
+</html>
