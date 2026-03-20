@@ -384,16 +384,34 @@ const EscalaApp = {
     },
 
     async deletePeriod(id) {
-        if (!confirm("Tem certeza que deseja excluir esta escala salva do programa?")) return;
+        const period = (EscalaStorage.periods || []).find(p => p.id === id);
+        if (!period) return alert("Período não encontrado.");
+
+        if (!confirm(`Tem certeza que deseja excluir o lote "${period.name}"?\n\nIsso também apagará permanentemente todas as escalas diárias geradas para este intervalo (${period.start} a ${period.end}).`)) return;
 
         const oldPeriods = JSON.parse(JSON.stringify(EscalaStorage.periods));
         UndoService.push('periods', null, oldPeriods);
 
         document.getElementById('loadingOverlay').style.display = 'flex';
         try {
+            // 1. Deleta as escalas diárias no intervalo para ambas as equipes
+            await EscalaStorage.batchDeleteSchedules('KIRRA', period.start, period.end);
+            await EscalaStorage.batchDeleteSchedules('MUNDAKA', period.start, period.end);
+
+            // 2. Deleta o registro do período
             await EscalaStorage.deletePeriod(id);
-            alert("Escala excluída com sucesso.");
+
+            alert("Lote e escalas associadas excluídos com sucesso.");
+            
+            // 3. Atualiza UI e Memória
             window.renderPeriods();
+            if (window.activePeriodId === id) {
+                window.backToDashboard();
+            }
+            // Recalcula ranking se estiver visível
+            if (document.getElementById('tabStats').classList.contains('active')) {
+                window.renderStats('KIRRA');
+            }
         } catch (e) {
             alert("Erro ao excluir: " + e.message);
         } finally {
@@ -482,7 +500,45 @@ const EscalaApp = {
             window.renderTeamList();
         } catch (e) { alert("Erro: " + e.message); }
         finally { document.getElementById('loadingOverlay').style.display = 'none'; }
-    }
+    },
+
+    // --- Upload de Escala ---
+    openUploadModal() {
+        if (!window.isSupervisor) return alert("🔒 Login necessário.");
+        document.getElementById('uploadScaleText').value = '';
+        document.getElementById('uploadWarnings').innerHTML = '';
+        document.getElementById('uploadScaleModal').style.display = 'flex';
+    },
+
+    closeUploadModal() {
+        document.getElementById('uploadScaleModal').style.display = 'none';
+    },
+
+    processUploadScale() {
+        const text = document.getElementById('uploadScaleText').value;
+        if (!text.trim()) return alert('Cole o texto da escala primeiro.');
+
+        const parsed = EscalaParser.parseText(text);
+
+        // Mostrar avisos de nomes não encontrados
+        const warningsDiv = document.getElementById('uploadWarnings');
+        if (parsed.warnings.length > 0) {
+            warningsDiv.innerHTML = '⚠️ Não encontrados: ' + parsed.warnings.join(', ');
+        } else {
+            warningsDiv.innerHTML = '✅ Todos os nomes foram identificados!';
+        }
+
+        // Preenche os slots da escala no editor
+        CalendarRenderer.renderEditorSlots(parsed.guides, parsed.gvs);
+        CalendarRenderer.renderAbsences();
+
+        // Fecha o modal após aplicar
+        this.closeUploadModal();
+
+        if (parsed.warnings.length > 0) {
+            alert(`Escala aplicada com ${parsed.warnings.length} aviso(s):\n\n${parsed.warnings.join('\n')}\n\nVerifique os slots marcados com ⚠ manualmente.`);
+        }
+    },
 };
 
 // --- Exposições Globais ---
@@ -509,6 +565,9 @@ window.addStaff = () => EscalaApp.addStaff();
 window.removeStaff = (idx) => EscalaApp.removeStaff(idx);
 window.addFreelancer = () => EscalaApp.addFreelancer();
 window.removeFreelancer = (idx) => EscalaApp.removeFreelancer(idx);
+window.openUploadModal = () => EscalaApp.openUploadModal();
+window.closeUploadModal = () => EscalaApp.closeUploadModal();
+window.processUploadScale = () => EscalaApp.processUploadScale();
 
 // Period UI
 window.showNewPeriodForm = () => EscalaApp.showNewPeriodForm();

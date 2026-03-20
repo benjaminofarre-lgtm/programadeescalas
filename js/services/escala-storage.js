@@ -146,6 +146,25 @@ const EscalaStorage = {
         }
     },
 
+    async deleteSchedule(team, isoDate) {
+        try {
+            await deleteDoc(doc(db, `schedules_${team}`, isoDate));
+            if (this.schedules[team]) delete this.schedules[team][isoDate];
+        } catch (e) {
+            console.error(`Erro ao deletar escala ${team}/${isoDate}:`, e);
+            throw e;
+        }
+    },
+
+    async batchDeleteSchedules(team, startIso, endIso) {
+        const schedules = this.schedules[team] || {};
+        const datesToDelete = Object.keys(schedules).filter(d => d >= startIso && d <= endIso);
+        
+        for (const iso of datesToDelete) {
+            await this.deleteSchedule(team, iso);
+        }
+    },
+
     async saveAllPeriods(list) {
         // Para simplificar, poderíamos salvar cada um, mas para o Undo, 
         // o mais seguro seria limpar a coleção e resalvar. 

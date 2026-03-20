@@ -279,22 +279,27 @@ const CalendarRenderer = {
     },
 
     renderStats(teamName, snapshotData = null) {
-        let stats;
+        const tbody = document.getElementById('statsTableBody');
+        const label = document.getElementById('rankingStartDateLabel');
+        if (!tbody) return;
 
         // Se estamos dentro de um período ativo, o ranking deve ser calculado 
         // apenas entre a data inicial e final desse período específico.
         const activePeriod = (window.periods || []).find(p => p.id === window.activePeriodId);
 
-        if (snapshotData) {
-            stats = snapshotData;
-        } else if (activePeriod) {
-            stats = JusticeService.calculateJustice(teamName, activePeriod.start, activePeriod.end);
-        } else {
-            stats = JusticeService.calculateJustice(teamName);
+        if (!snapshotData && !activePeriod) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#999;">Selecione um lote de escalas no Calendário para ver o ranking de justiça deste período.</td></tr>';
+            if (label) label.innerHTML = '<span style="color:#e74c3c;">Nenhum lote selecionado.</span>';
+            return;
         }
 
-        const tbody = document.getElementById('statsTableBody');
-        if (!tbody) return;
+        let stats;
+        if (snapshotData) {
+            stats = snapshotData;
+        } else {
+            stats = JusticeService.calculateJustice(teamName, activePeriod.start, activePeriod.end);
+        }
+
         tbody.innerHTML = '';
 
         Object.keys(stats).sort((a, b) => stats[a].ratio - stats[b].ratio).forEach((id, idx) => {
@@ -319,7 +324,6 @@ const CalendarRenderer = {
         });
 
         // Se for snapshot, atualizar o rótulo da data
-        const label = document.getElementById('rankingStartDateLabel');
         if (snapshotData && label) {
             label.innerHTML = `<span style="color:var(--accent); font-weight:bold;">📍 Mostrando Ranking SALVO (conforme estava no dia da escala)</span>`;
         } else if (activePeriod && label) {
