@@ -83,7 +83,7 @@ const EscalaApp = {
         return `${y}-${m}-${day}`;
     },
     getTodayISO() { return this.getBrasiliaISO(new Date()); },
-    isPast(iso) { return iso < this.getTodayISO() || iso < EscalaConfig.SYSTEM_START_DATE; },
+    isPast(iso) { return false; }, // Bloqueio de datas passadas desativado
     getTeam(iso) {
         const parts = iso.split('-').map(Number);
         const refParts = EscalaConfig.SYSTEM_START_DATE.split('-').map(Number);
